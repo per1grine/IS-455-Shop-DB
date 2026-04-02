@@ -1,0 +1,118 @@
+@model PlaceOrderPageViewModel
+@{
+    ViewData["Title"] = "Place Order";
+}
+
+<section class="page-card p-4 p-lg-5">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+        <div>
+            <p class="form-section-title mb-2">New Order</p>
+            <h1 class="h2 mb-2">Place an order for @Model.Customer.FullName</h1>
+            <p class="text-muted mb-0">Orders are inserted into <code>orders</code> and <code>order_items</code> in one SQLite transaction.</p>
+        </div>
+        <div class="summary-card align-self-start">
+            <div class="metric-label">Pricing Rules</div>
+            <div class="small text-muted">Shipping is $5 for subtotals above $100, otherwise $12. Tax is @Model.TaxRatePercent%.</div>
+        </div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post" class="row g-4">
+        @Html.AntiForgeryToken()
+
+        <div class="col-lg-4">
+            <label asp-for="Form.BillingZip" class="form-label"></label>
+            <input asp-for="Form.BillingZip" class="form-control" />
+            <span asp-validation-for="Form.BillingZip" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4">
+            <label asp-for="Form.ShippingZip" class="form-label"></label>
+            <input asp-for="Form.ShippingZip" class="form-control" />
+            <span asp-validation-for="Form.ShippingZip" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4">
+            <label asp-for="Form.ShippingState" class="form-label"></label>
+            <input asp-for="Form.ShippingState" class="form-control" />
+            <span asp-validation-for="Form.ShippingState" class="text-danger"></span>
+        </div>
+
+        <div class="col-lg-4">
+            <label asp-for="Form.PaymentMethod" class="form-label"></label>
+            <select asp-for="Form.PaymentMethod" class="form-select">
+                <option value="card">card</option>
+                <option value="paypal">paypal</option>
+                <option value="bank">bank</option>
+                <option value="crypto">crypto</option>
+            </select>
+        </div>
+        <div class="col-lg-4">
+            <label asp-for="Form.DeviceType" class="form-label"></label>
+            <select asp-for="Form.DeviceType" class="form-select">
+                <option value="desktop">desktop</option>
+                <option value="mobile">mobile</option>
+                <option value="tablet">tablet</option>
+            </select>
+        </div>
+        <div class="col-lg-4">
+            <label asp-for="Form.IpCountry" class="form-label"></label>
+            <input asp-for="Form.IpCountry" class="form-control" />
+            <span asp-validation-for="Form.IpCountry" class="text-danger"></span>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="form-check mt-4">
+                <input asp-for="Form.PromoUsed" class="form-check-input" />
+                <label asp-for="Form.PromoUsed" class="form-check-label"></label>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <label asp-for="Form.PromoCode" class="form-label"></label>
+            <input asp-for="Form.PromoCode" class="form-control" />
+        </div>
+
+        <div class="col-12">
+            <div class="form-section-title mb-3">Line Items</div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th style="width: 140px;">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @for (var i = 0; i < Model.Form.Items.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <select asp-for="Form.Items[i].ProductId" class="form-select">
+                                    <option value="">Select a product</option>
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <option value="@product.ProductId">@product.ProductName (@product.Category) - @product.Price.ToString("C")</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Form.Items[i].ProductId" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="Form.Items[i].Quantity" class="form-control" />
+                                <span asp-validation-for="Form.Items[i].Quantity" class="text-danger"></span>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <a class="btn btn-outline-secondary" asp-action="Dashboard">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Order</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

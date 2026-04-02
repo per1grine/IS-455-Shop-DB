@@ -1,0 +1,37 @@
+@model SelectCustomerPageViewModel
+@{
+    ViewData["Title"] = "Select Customer";
+}
+
+<section class="page-card p-4 p-lg-5">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+        <div>
+            <p class="form-section-title mb-2">Session Setup</p>
+            <h1 class="h2 mb-2">Choose a customer to act as</h1>
+            <p class="text-muted mb-0">No authentication is enabled. The selected <code>customer_id</code> is stored in a cookie and used across the app.</p>
+        </div>
+        <div class="summary-card align-self-start">
+            <div class="metric-label">Available Customers</div>
+            <div class="metric-value">@Model.Customers.Count</div>
+        </div>
+    </div>
+
+    <form method="post" class="row g-3 align-items-end">
+        @Html.AntiForgeryToken()
+        <div class="col-lg-9">
+            <label class="form-label fw-semibold" for="customerId">Customer</label>
+            <select class="form-select form-select-lg" id="customerId" name="customerId" required>
+                <option value="">Select a customer</option>
+                @foreach (var customer in Model.Customers)
+                {
+                    <option value="@customer.CustomerId" selected="@(Model.SelectedCustomerId == customer.CustomerId)">
+                        @customer.FullName (@customer.Email) | @customer.Segment / @customer.LoyaltyTier | @customer.State
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-lg-3">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Use This Customer</button>
+        </div>
+    </form>
+</section>

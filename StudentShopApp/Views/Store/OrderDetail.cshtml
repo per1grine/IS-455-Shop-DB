@@ -1,0 +1,76 @@
+@model OrderDetailViewModel
+@{
+    ViewData["Title"] = "Order Detail";
+}
+
+<section class="mb-4">
+    <p class="form-section-title mb-2">Order Detail</p>
+    <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="h2 mb-1">Order #@Model.OrderId</h1>
+            <p class="text-muted mb-0">@Model.CustomerName | @Model.OrderDateTime</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-action="Orders">Back to Orders</a>
+    </div>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-md-3"><div class="summary-card"><div class="metric-label">Payment</div><div class="metric-value fs-4">@Model.PaymentMethod</div></div></div>
+    <div class="col-md-3"><div class="summary-card"><div class="metric-label">Device</div><div class="metric-value fs-4">@Model.DeviceType</div></div></div>
+    <div class="col-md-3"><div class="summary-card"><div class="metric-label">Priority</div><div class="metric-value fs-5">@Model.PriorityBucket</div></div></div>
+    <div class="col-md-3"><div class="summary-card"><div class="metric-label">Order Total</div><div class="metric-value fs-4">@Model.OrderTotal.ToString("C")</div></div></div>
+</section>
+
+<section class="row g-4">
+    <div class="col-lg-8">
+        <div class="page-card p-4">
+            <h2 class="h4 mb-3">Line Items</h2>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.LineItems)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.ProductName</td>
+                            <td>@item.Sku</td>
+                            <td>@item.Category</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.UnitPrice.ToString("C")</td>
+                            <td>@item.LineTotal.ToString("C")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="page-card p-4 mb-3">
+            <h2 class="h5 mb-3">Totals</h2>
+            <dl class="row mb-0">
+                <dt class="col-6">Subtotal</dt><dd class="col-6 text-end">@Model.Subtotal.ToString("C")</dd>
+                <dt class="col-6">Shipping</dt><dd class="col-6 text-end">@Model.ShippingFee.ToString("C")</dd>
+                <dt class="col-6">Tax</dt><dd class="col-6 text-end">@Model.TaxAmount.ToString("C")</dd>
+                <dt class="col-6 fw-semibold">Total</dt><dd class="col-6 text-end fw-semibold">@Model.OrderTotal.ToString("C")</dd>
+            </dl>
+        </div>
+        <div class="page-card p-4">
+            <h2 class="h5 mb-3">Shipping + Prediction</h2>
+            <p class="mb-2"><strong>State:</strong> @Model.ShippingState</p>
+            <p class="mb-2"><strong>Billing ZIP:</strong> @Model.BillingZip</p>
+            <p class="mb-2"><strong>Shipping ZIP:</strong> @Model.ShippingZip</p>
+            <p class="mb-2"><strong>Priority score:</strong> @(Model.PriorityScore?.ToString("0.0") ?? "Not scored")</p>
+            <p class="mb-0"><strong>Reason:</strong> @(string.IsNullOrWhiteSpace(Model.PredictionReason) ? "No prediction data available." : Model.PredictionReason)</p>
+        </div>
+    </div>
+</section>

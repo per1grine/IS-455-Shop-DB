@@ -1,0 +1,59 @@
+@model IReadOnlyList<WarehousePriorityItemViewModel>
+@{
+    ViewData["Title"] = "Warehouse Priority";
+}
+
+<section class="page-card p-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+        <div>
+            <p class="form-section-title mb-2">Warehouse Queue</p>
+            <h1 class="h2 mb-1">Late delivery priority queue</h1>
+            <p class="text-muted mb-0">Rows are joined from <code>shipments</code>, <code>orders</code>, <code>customers</code>, and <code>order_predictions</code>.</p>
+        </div>
+        <form method="post" asp-action="RunScoring">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary">Run Scoring Job</button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>State</th>
+                    <th>Total</th>
+                    <th>Priority</th>
+                    <th>Ship ETA</th>
+                    <th>Delay</th>
+                    <th>Carrier</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="9" class="text-muted py-4">No late deliveries are currently flagged.</td></tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">#@item.OrderId</td>
+                        <td>@item.CustomerName</td>
+                        <td>@item.CustomerState</td>
+                        <td>@item.OrderTotal.ToString("C")</td>
+                        <td><span class="badge badge-soft">@item.PriorityBucket (@item.PriorityScore.ToString("0.0"))</span></td>
+                        <td>@item.EstimatedShipHours hrs</td>
+                        <td>@(item.ActualDays - item.PromisedDays) days late</td>
+                        <td>@item.Carrier</td>
+                        <td>@item.PredictionReason</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

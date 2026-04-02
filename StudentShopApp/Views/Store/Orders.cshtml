@@ -1,0 +1,52 @@
+@model IReadOnlyList<OrderSummaryViewModel>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<section class="page-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <p class="form-section-title mb-2">Order History</p>
+            <h1 class="h2 mb-1">@ViewBag.CustomerName</h1>
+            <p class="text-muted mb-0">All orders for the active customer.</p>
+        </div>
+        <a class="btn btn-primary" asp-action="PlaceOrder">Place Order</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Device</th>
+                    <th>Priority</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="7" class="text-muted py-4">No orders found.</td></tr>
+            }
+            else
+            {
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">#@order.OrderId</td>
+                        <td>@order.OrderDateTime</td>
+                        <td>@order.OrderTotal.ToString("C")</td>
+                        <td>@order.PaymentMethod</td>
+                        <td>@order.DeviceType</td>
+                        <td><span class="badge badge-soft">@order.PriorityBucket (@(order.PriorityScore?.ToString("0.0") ?? "-"))</span></td>
+                        <td><a class="btn btn-sm btn-outline-secondary" asp-action="OrderDetail" asp-route-orderId="@order.OrderId">Details</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
