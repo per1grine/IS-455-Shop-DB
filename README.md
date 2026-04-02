@@ -22,17 +22,42 @@ The MVC app uses `Microsoft.Data.Sqlite` directly and stores the selected `custo
 
 - .NET SDK 10.0 or newer
 - Python 3 available as `python3`
+- Node.js and npm for the Next.js frontend
 
-## Run
+## Repo Layout
+
+```text
+ml_pipeline_app/
+  StudentShopApp/    # ASP.NET Core MVC backend + server-rendered UI
+  frontend/          # Next.js frontend prototype
+  jobs/              # Python scoring scripts
+  shop.db            # SQLite database
+```
+
+## Terminal Commands
+
+Run these from the repo root.
+
+### Backend
+
+First time:
 
 ```bash
 dotnet restore StudentShopApp/StudentShopApp.csproj
 dotnet run --project StudentShopApp/StudentShopApp.csproj
 ```
 
-Open the app on the local ASP.NET Core URL and start with `/select-customer`.
+After that:
 
-## Run The Next.js Frontend
+```bash
+dotnet run --project StudentShopApp/StudentShopApp.csproj
+```
+
+Open the backend on the local ASP.NET Core URL and start with `/select-customer`.
+
+### Frontend
+
+First time:
 
 ```bash
 cd frontend
@@ -40,7 +65,33 @@ npm install
 npm run dev
 ```
 
-The frontend is a separate App Router project intended for Vercel deployment later. Right now it mirrors the same pages with mock data and lightweight API routes:
+After that:
+
+```bash
+cd frontend
+npm run dev
+```
+
+### Python Scoring Script
+
+```bash
+python3 jobs/run_inference.py
+```
+
+### Optional Build Checks
+
+```bash
+dotnet build StudentShopApp/StudentShopApp.csproj
+```
+
+```bash
+cd frontend
+npm run build
+```
+
+## Frontend Notes
+
+The `frontend/` app is a separate App Router project intended for Vercel deployment later. Right now it mirrors the same pages with mock data and lightweight API routes:
 
 - `/select-customer`
 - `/dashboard`
@@ -48,6 +99,8 @@ The frontend is a separate App Router project intended for Vercel deployment lat
 - `/orders`
 - `/orders/[orderId]`
 - `/warehouse/priority`
+
+The current ASP.NET MVC app is still the working backend reference implementation.
 
 ## Key Files
 
