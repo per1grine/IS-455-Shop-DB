@@ -1,3 +1,12 @@
 bin/
 obj/
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.user
+*.suo
+*.swp
+*.log
+frontend/node_modules/
+frontend/.next/
