@@ -1,10 +1,8 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-import type { Customer } from "@/lib/mock-data";
-import { CUSTOMER_COOKIE } from "@/lib/mock-data";
+import type { Customer } from "@/lib/types";
+import { CUSTOMER_COOKIE } from "@/lib/types";
 
 type SelectCustomerFormProps = {
   customers: Customer[];
@@ -12,16 +10,14 @@ type SelectCustomerFormProps = {
 
 export function SelectCustomerForm({ customers }: SelectCustomerFormProps) {
   const router = useRouter();
-  const [customerId, setCustomerId] = useState<string>(String(customers[0]?.customerId ?? ""));
+  const [customer_id, setCustomerId] = useState<string>(String(customers[0]?.customer_id ?? ""));
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!customerId) {
+    if (!customer_id) {
       return;
     }
-
-    document.cookie = `${CUSTOMER_COOKIE}=${customerId}; path=/; max-age=2592000; samesite=lax`;
+    document.cookie = `${CUSTOMER_COOKIE}=${customer_id}; path=/; max-age=2592000; samesite=lax`;
     router.push("/dashboard");
     router.refresh();
   }
@@ -32,12 +28,12 @@ export function SelectCustomerForm({ customers }: SelectCustomerFormProps) {
         <span className="field-label">Customer</span>
         <select
           className="input"
-          value={customerId}
+          value={customer_id}
           onChange={(event) => setCustomerId(event.target.value)}
         >
           {customers.map((customer) => (
-            <option key={customer.customerId} value={customer.customerId}>
-              {customer.fullName} ({customer.email}) | {customer.segment} / {customer.loyaltyTier} | {customer.state}
+            <option key={customer.customer_id} value={customer.customer_id}>
+              {customer.full_name} ({customer.email}) | {customer.customer_segment} / {customer.loyalty_tier} | {customer.state}
             </option>
           ))}
         </select>
