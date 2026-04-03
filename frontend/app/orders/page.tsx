@@ -1,18 +1,22 @@
 import Link from "next/link";
-import { supabase } from '../../lib/supabaseClient'
-
-import { getOrdersForCustomer } from "@/lib/mock-data";
 import { requireCustomer } from "@/lib/session";
+import { supabase } from "@/lib/supabaseClient";
 
 export default async function OrdersPage() {
   const customer = await requireCustomer();
-  const customerOrders = getOrdersForCustomer(customer.customerId);
+  const { data: orders } = await supabase
+    .from('order_summary')
+    .select('*')
+    .eq('customer_id', customer.customer_id)
+    .order('order_datetime', { ascending: false });
+
+  const orderList = orders ?? [];
 
   return (
     <section className="panel" style={{ padding: "1.5rem" }}>
       <div className="eyebrow">Order History</div>
-      <h1 className="section-title">{customer.fullName}</h1>
-      <p className="section-copy">All mock orders for the active customer.</p>
+      <h1 className="section-title">{customer.full_name}</h1>
+      <p className="section-copy">All orders for the active customer.</p>
 
       <div className="table-wrap">
         <table className="table">
@@ -27,14 +31,14 @@ export default async function OrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {customerOrders.map((order) => (
-              <tr key={order.orderId}>
-                <td><Link href={`/orders/${order.orderId}`}>#{order.orderId}</Link></td>
-                <td>{order.orderDateTime}</td>
-                <td>${order.total.toFixed(2)}</td>
-                <td>{order.paymentMethod}</td>
-                <td>{order.deviceType}</td>
-                <td><span className="badge">{order.priorityBucket} ({order.priorityScore.toFixed(1)})</span></td>
+            {orderList.map((order) => (
+              <tr key={order.order_id}>
+                <td><Link href={`/orders/${order.order_id}`}>#{order.order_id}</Link></td>
+                <td>{order.order_datetime}</td>
+                <td>${order.order_total.toFixed(2)}</td>
+                <td>{order.payment_method}</td>
+                <td>{order.device_type}</td>
+                <td><span className="badge">{order.priority_bucket} ({order.predicted_priority_score?.toFixed(1) ?? 'N/A'})</span></td>
               </tr>
             ))}
           </tbody>

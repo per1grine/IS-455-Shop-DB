@@ -1,7 +1,13 @@
 import { ScoringButton } from "@/components/scoring-button";
-import { warehouseQueue } from "@/lib/mock-data";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function WarehousePriorityPage() {
+export default async function WarehousePriorityPage() {
+  const { data: queue } = await supabase
+    .from('warehouse_priority_queue')
+    .select('*');
+
+  const items = queue ?? [];
+
   return (
     <section className="panel" style={{ padding: "1.5rem" }}>
       <div className="row-between" style={{ marginBottom: "1rem" }}>
@@ -29,17 +35,17 @@ export default function WarehousePriorityPage() {
             </tr>
           </thead>
           <tbody>
-            {warehouseQueue.map((item) => (
-              <tr key={item.orderId}>
-                <td>#{item.orderId}</td>
-                <td>{item.customerName}</td>
-                <td>{item.customerState}</td>
-                <td>${item.orderTotal.toFixed(2)}</td>
-                <td><span className="badge">{item.priorityBucket} ({item.priorityScore.toFixed(1)})</span></td>
-                <td>{item.estimatedShipHours} hrs</td>
-                <td>{item.delayDays} days</td>
+            {items.map((item) => (
+              <tr key={item.order_id}>
+                <td>#{item.order_id}</td>
+                <td>{item.customer_name}</td>
+                <td>{item.customer_state}</td>
+                <td>${item.order_total.toFixed(2)}</td>
+                <td><span className="badge">{item.priority_bucket} ({item.priority_score?.toFixed(1) ?? 'N/A'})</span></td>
+                <td>{item.estimated_ship_hours} hrs</td>
+                <td>{item.delay_days} days</td>
                 <td>{item.carrier}</td>
-                <td>{item.predictionReason}</td>
+                <td>{item.prediction_reason}</td>
               </tr>
             ))}
           </tbody>

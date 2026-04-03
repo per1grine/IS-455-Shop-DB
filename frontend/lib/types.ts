@@ -1,5 +1,12 @@
 export const CUSTOMER_COOKIE = "student_shop_customer_id";
 
+export type Product = {
+  product_id: number;
+  product_name: string;
+  category: string;
+  price: number;
+};
+
 export type Customer = {
   customer_id: number;
   full_name: string;

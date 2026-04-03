@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-
-import type { Customer, Product } from "@/lib/mock-data";
+import { useRouter } from "next/navigation";
+import type { Customer, Product } from "@/lib/types";
+import { supabase } from "@/lib/supabaseClient";
 
 type PlaceOrderFormProps = {
   customer: Customer;
@@ -17,6 +18,7 @@ type RowState = {
 const emptyRows = Array.from({ length: 5 }, () => ({ productId: "", quantity: "" }));
 
 export function PlaceOrderForm({ customer, products }: PlaceOrderFormProps) {
+  const router = useRouter();
   const [billingZip, setBillingZip] = useState("");
   const [shippingZip, setShippingZip] = useState("");
   const [shippingState, setShippingState] = useState(customer.state);
@@ -32,7 +34,7 @@ export function PlaceOrderForm({ customer, products }: PlaceOrderFormProps) {
     setRows((current) => current.map((row, rowIndex) => (rowIndex === index ? nextRow : row)));
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: { preventDefault(): void }) {
     event.preventDefault();
 
     const lineItems = rows.filter((row) => row.productId && Number(row.quantity) > 0);
@@ -42,17 +44,63 @@ export function PlaceOrderForm({ customer, products }: PlaceOrderFormProps) {
     }
 
     const subtotal = lineItems.reduce((sum, row) => {
-      const product = products.find((item) => item.productId === Number(row.productId));
+      const product = products.find((item) => item.product_id === Number(row.productId));
       return sum + (product ? product.price * Number(row.quantity) : 0);
     }, 0);
 
     const shippingFee = subtotal >= 100 ? 5 : 12;
     const taxAmount = subtotal * 0.08;
     const total = subtotal + shippingFee + taxAmount;
+    const now = new Date().toISOString().replace("T", " ").slice(0, 19);
 
-    setStatus(
-      `Mock order created for ${customer.fullName}. Payment ${paymentMethod}, device ${deviceType}, total $${total.toFixed(2)}. Replace this with Supabase or API persistence later.`
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        customer_id: customer.customer_id,
+        order_datetime: now,
+        billing_zip: billingZip,
+        shipping_zip: shippingZip,
+        shipping_state: shippingState,
+        payment_method: paymentMethod,
+        device_type: deviceType,
+        ip_country: ipCountry,
+        promo_used: promoUsed,
+        promo_code: promoCode || null,
+        order_subtotal: Math.round(subtotal * 100) / 100,
+        shipping_fee: shippingFee,
+        tax_amount: Math.round(taxAmount * 100) / 100,
+        order_total: Math.round(total * 100) / 100,
+        risk_score: 0,
+        is_fraud: false,
+      })
+      .select('order_id')
+      .single();
+
+    if (orderError || !orderData) {
+      setStatus(`Failed to create order: ${orderError?.message ?? "unknown error"}`);
+      return;
+    }
+
+    const { error: itemsError } = await supabase.from('order_items').insert(
+      lineItems.map((row) => {
+        const product = products.find((item) => item.product_id === Number(row.productId))!;
+        const lineTotal = Math.round(product.price * Number(row.quantity) * 100) / 100;
+        return {
+          order_id: orderData.order_id,
+          product_id: product.product_id,
+          quantity: Number(row.quantity),
+          unit_price: product.price,
+          line_total: lineTotal,
+        };
+      })
     );
+
+    if (itemsError) {
+      setStatus(`Order created but line items failed: ${itemsError.message}`);
+      return;
+    }
+
+    router.push(`/orders/${orderData.order_id}`);
   }
 
   return (
@@ -128,8 +176,8 @@ export function PlaceOrderForm({ customer, products }: PlaceOrderFormProps) {
                     >
                       <option value="">Select a product</option>
                       {products.map((product) => (
-                        <option key={product.productId} value={product.productId}>
-                          {product.name} ({product.category}) - ${product.price.toFixed(2)}
+                        <option key={product.product_id} value={product.product_id}>
+                          {product.product_name} ({product.category}) - ${product.price.toFixed(2)}
                         </option>
                       ))}
                     </select>
@@ -151,7 +199,7 @@ export function PlaceOrderForm({ customer, products }: PlaceOrderFormProps) {
       <div className="row-between">
         <div className="note">Shipping is $5 above $100 subtotal, otherwise $12. Tax is 8%.</div>
         <button type="submit" className="button button-primary">
-          Create Mock Order
+          Place Order
         </button>
       </div>
 

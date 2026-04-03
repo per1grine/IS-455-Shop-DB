@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const customer = await getActiveCustomer();
-  const label = customer ? `Acting as: ${customer.fullName}` : "No customer selected";
+  const label = customer ? `Acting as: ${customer.full_name}` : "No customer selected";
 
   return (
     <html lang="en">

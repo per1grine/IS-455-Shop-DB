@@ -28,4 +28,3 @@ export async function requireCustomer() {
   }
   return customer;
 }
-```
