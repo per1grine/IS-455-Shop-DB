@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { supabase } from '../../lib/supabaseClient'
 
 import { getOrdersForCustomer } from "@/lib/mock-data";
 import { requireCustomer } from "@/lib/session";

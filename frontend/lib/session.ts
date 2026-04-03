@@ -1,18 +1,19 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { CUSTOMER_COOKIE, getCustomer } from "@/lib/mock-data";
+import supabase from "@/lib/supabaseClient";
+import
 
 export async function getActiveCustomer() {
   const cookieStore = await cookies();
   const rawCustomerId = cookieStore.get(CUSTOMER_COOKIE)?.value;
-  const customerId = rawCustomerId ? Number(rawCustomerId) : undefined;
+  const customer_id = rawCustomerId ? Number(rawCustomerId) : undefined;
 
-  if (!customerId || Number.isNaN(customerId)) {
+  if (!customer_id || Number.isNaN(customer_id)) {
     return undefined;
   }
 
-  return getCustomer(customerId);
+  return getCustomer(customer_id);
 }
 
 export async function requireCustomer() {
