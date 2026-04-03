@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-import supabase from "@/lib/supabaseClient";
-import
+import { CUSTOMER_COOKIE } from "@/lib/types";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function getActiveCustomer() {
   const cookieStore = await cookies();
@@ -13,15 +12,20 @@ export async function getActiveCustomer() {
     return undefined;
   }
 
-  return getCustomer(customer_id);
+  const { data: customer } = await supabase
+    .from('customer_summary')
+    .select('*')
+    .eq('customer_id', customer_id)
+    .single();
+
+  return customer ?? undefined;
 }
 
 export async function requireCustomer() {
   const customer = await getActiveCustomer();
-
   if (!customer) {
     redirect("/select-customer");
   }
-
   return customer;
 }
+```

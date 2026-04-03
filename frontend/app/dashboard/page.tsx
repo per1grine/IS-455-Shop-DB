@@ -1,27 +1,32 @@
 import Link from "next/link";
-
-import { getOrdersForCustomer } from "@/lib/mock-data";
 import { requireCustomer } from "@/lib/session";
+import { supabase } from "@/lib/supabaseClient";
 
 export default async function DashboardPage() {
   const customer = await requireCustomer();
-  const recentOrders = getOrdersForCustomer(customer.customerId).slice(0, 5);
+  const { data: recentOrders } = await supabase
+      .from('order_summary')
+      .select('*')
+      .eq('customer_id', customer.customer_id)
+      .order('order_datetime', { ascending: false })
+      .limit(5);
+const orders = recentOrders ?? [];
 
   return (
     <div className="stack-xl">
       <section className="hero">
         <div className="eyebrow">Customer Dashboard</div>
-        <h1 className="hero-title">{customer.fullName}</h1>
+        <h1 className="hero-title">{customer.full_name}</h1>
         <p className="hero-copy">
-          {customer.email} | {customer.city}, {customer.state} | {customer.segment} / {customer.loyaltyTier}
+          {customer.email} | {customer.city}, {customer.state} | {customer.customer_segment} / {customer.loyalty_tier}
         </p>
       </section>
 
       <section className="grid grid-4">
-        <div className="metric"><div className="metric-label">Total Orders</div><div className="metric-value">{customer.orderCount}</div></div>
-        <div className="metric"><div className="metric-label">Total Spent</div><div className="metric-value">${customer.totalSpent.toFixed(0)}</div></div>
-        <div className="metric"><div className="metric-label">Average Order</div><div className="metric-value">${customer.averageOrder.toFixed(0)}</div></div>
-        <div className="metric"><div className="metric-label">Last Order</div><div className="metric-value" style={{ fontSize: "1rem" }}>{customer.lastOrderDate}</div></div>
+        <div className="metric"><div className="metric-label">Total Orders</div><div className="metric-value">{customer.order_count}</div></div>
+        <div className="metric"><div className="metric-label">Total Spent</div><div className="metric-value">${customer.total_spent.toFixed(0)}</div></div>
+        <div className="metric"><div className="metric-label">Average Order</div><div className="metric-value">${customer.average_order.toFixed(0)}</div></div>
+        <div className="metric"><div className="metric-label">Last Order</div><div className="metric-value" style={{ fontSize: "1rem" }}>{customer.last_order_date}</div></div>
       </section>
 
       <section className="panel" style={{ padding: "1.5rem" }}>
@@ -50,14 +55,14 @@ export default async function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order.orderId}>
-                  <td><Link href={`/orders/${order.orderId}`}>#{order.orderId}</Link></td>
-                  <td>{order.orderDateTime}</td>
-                  <td>${order.total.toFixed(2)}</td>
-                  <td>{order.paymentMethod}</td>
-                  <td>{order.deviceType}</td>
-                  <td><span className="badge">{order.priorityBucket} ({order.priorityScore.toFixed(1)})</span></td>
+              {orders.map((order) => (
+                <tr key={order.order_id}>
+                  <td><Link href={`/orders/${order.order_id}`}>#{order.order_id}</Link></td>
+                  <td>{order.order_datetime}</td>
+                  <td>${order.order_total.toFixed(2)}</td>
+                  <td>{order.payment_method}</td>
+                  <td>{order.device_type}</td>
+                  <td><span className="badge">{order.priority_bucket ?? 'unscored'} ({order.predicted_priority_score?.toFixed(1) ?? 'N/A'}))</span></td>
                 </tr>
               ))}
             </tbody>
