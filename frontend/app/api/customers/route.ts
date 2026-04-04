@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
-
-import { customers } from "@/lib/mock-data";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export async function GET() {
-  return NextResponse.json(customers);
+  const { data, error } = await supabaseServer
+    .from("customer_summary")
+    .select("*")
+    .order("full_name");
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
 }

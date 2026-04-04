@@ -1,63 +1,57 @@
-# Student Shop App
+# IS-455 Shop DB
 
-This repo now contains:
+End-to-end ML pipeline project for IS 455. Includes a Next.js frontend connected to Supabase, an ASP.NET Core MVC reference backend, a Python ML inference job, and a fraud-detection model trained on the shop database.
 
-- `StudentShopApp/`: ASP.NET Core MVC app backed by `shop.db`
-- `frontend/`: Next.js frontend prototype for Vercel
-- `jobs/`: Python inference scripts
+---
 
-The MVC app uses `Microsoft.Data.Sqlite` directly and stores the selected `customer_id` in a cookie instead of using authentication.
+## Project Structure
 
-## Routes
+```
+IS-455-Shop-DB/
+├── .github/workflows/     # GitHub Actions cron job for daily ML scoring
+├── ML/                    # Jupyter notebook + trained model
+│   ├── Pipeline.ipynb     # CRISP-DM fraud detection pipeline
+│   ├── model1.sav         # Trained Logistic Regression model (joblib)
+│   └── model1.meta.json   # Model metadata
+├── database/              # Database files and Supabase setup instructions
+│   ├── shop.db            # SQLite source database
+│   ├── *.csv              # Exported table data (for Supabase import)
+│   ├── 01_create_tables.sql
+│   ├── 02_create_views.sql
+│   ├── 03_disable_rls.sql
+│   ├── SUPABASE_SETUP.md  # Step-by-step data import instructions
+│   └── SUPABASE_README.md # Full setup guide for Supabase + GitHub Actions
+├── jobs/
+│   └── run_inference.py   # ML scoring script (reads/writes Supabase)
+├── frontend/              # Next.js 15 frontend (Vercel deployment)
+└── StudentShopApp/        # ASP.NET Core MVC backend (reference implementation)
+```
 
-- `GET/POST /select-customer`
-- `GET /dashboard`
-- `GET/POST /place-order`
-- `GET /orders`
-- `GET /orders/{orderId}`
-- `GET /warehouse/priority`
-- `POST /scoring/run`
+---
+
+## Pages
+
+| Path | Description |
+|------|-------------|
+| `/select-customer` | Pick a customer to act as (stored in cookie) |
+| `/dashboard` | Customer summary metrics + recent orders |
+| `/place-order` | Create a new order and save it to the database |
+| `/orders` | Full order history for the active customer |
+| `/orders/[id]` | Order detail with line items and fraud prediction |
+| `/warehouse/priority` | Late delivery priority queue + Run Scoring button |
+
+---
 
 ## Prerequisites
 
-- .NET SDK 10.0 or newer
-- Python 3 available as `python3`
-- Node.js and npm for the Next.js frontend
+- Node.js 18+ (Next.js frontend)
+- .NET SDK 10.0+ (ASP.NET backend)
+- Python 3.11+ with joblib, scikit-learn, numpy, pandas (ML scoring job)
+- Supabase project configured (see `database/SUPABASE_README.md`)
 
-## Repo Layout
+---
 
-```text
-ml_pipeline_app/
-  StudentShopApp/    # ASP.NET Core MVC backend + server-rendered UI
-  frontend/          # Next.js frontend prototype
-  jobs/              # Python scoring scripts
-  shop.db            # SQLite database
-```
-
-## Terminal Commands
-
-Run these from the repo root.
-
-### Backend
-
-First time:
-
-```bash
-dotnet restore StudentShopApp/StudentShopApp.csproj
-dotnet run --project StudentShopApp/StudentShopApp.csproj
-```
-
-After that:
-
-```bash
-dotnet run --project StudentShopApp/StudentShopApp.csproj
-```
-
-Open the backend on the local ASP.NET Core URL and start with `/select-customer`.
-
-### Frontend
-
-First time:
+## Run the Next.js Frontend
 
 ```bash
 cd frontend
@@ -65,57 +59,53 @@ npm install
 npm run dev
 ```
 
-After that:
+Requires `frontend/.env.local` with Supabase credentials. See `database/SUPABASE_README.md`.
+
+---
+
+## Run the ASP.NET Backend (reference only)
 
 ```bash
-cd frontend
-npm run dev
+dotnet restore StudentShopApp/StudentShopApp.csproj
+dotnet run --project StudentShopApp/StudentShopApp.csproj
 ```
 
-### Python Scoring Script
+Open the local URL and navigate to `/select-customer`.
+
+---
+
+## Run the ML Scoring Job Manually
 
 ```bash
-python3 jobs/run_inference.py
+export SUPABASE_URL=https://qqznlvcexvgdqfmeiznw.supabase.co
+export SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+python jobs/run_inference.py
 ```
 
-### Optional Build Checks
+This also runs automatically every day at 6am UTC via GitHub Actions once secrets are configured.
 
-```bash
-dotnet build StudentShopApp/StudentShopApp.csproj
+---
+
+## Supabase Setup
+
+See `database/SUPABASE_README.md` for the full guide covering:
+- Importing all tables and data into Supabase
+- Creating the views the frontend depends on
+- Adding GitHub secrets for the daily cron job
+
+---
+
+## Architecture
+
 ```
+GitHub Actions (daily 6am UTC)
+  → jobs/run_inference.py
+  → loads ML/model1.sav (Logistic Regression fraud classifier)
+  → reads orders, shipments, reviews from Supabase
+  → writes fraud predictions to order_predictions table
 
-```bash
-cd frontend
-npm run build
+Next.js frontend (Vercel)
+  → all pages read from Supabase views
+  → /place-order writes new orders directly to Supabase
+  → /warehouse/priority "Run Scoring" button triggers the pipeline
 ```
-
-## Frontend Notes
-
-The `frontend/` app is a separate App Router project intended for Vercel deployment later. Right now it mirrors the same pages with mock data and lightweight API routes:
-
-- `/select-customer`
-- `/dashboard`
-- `/place-order`
-- `/orders`
-- `/orders/[orderId]`
-- `/warehouse/priority`
-
-The current ASP.NET MVC app is still the working backend reference implementation.
-
-## Key Files
-
-- App project: `StudentShopApp/`
-- Frontend project: `frontend/`
-- SQLite database: `shop.db`
-- Python scoring job: `jobs/run_inference.py`
-- App configuration: `StudentShopApp/appsettings.json`
-
-## Migration Note
-
-When you move to Supabase/Postgres later:
-
-- keep the MVC app as the backend reference implementation
-- replace the repository behind `IShopRepository` in the ASP.NET app
-- swap the mock data inside `frontend/` for Supabase queries or API calls
-
-That gives you a clean seam for moving from local SQLite to a hosted Postgres stack without redesigning the UI twice.

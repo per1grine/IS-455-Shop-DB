@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { requireCustomer } from "@/lib/session";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export default async function OrdersPage() {
   const customer = await requireCustomer();
-  const { data: orders } = await supabase
+  const { data: orders } = await supabaseServer
     .from('order_summary')
     .select('*')
     .eq('customer_id', customer.customer_id)

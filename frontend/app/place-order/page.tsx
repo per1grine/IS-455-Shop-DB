@@ -1,10 +1,10 @@
 import { PlaceOrderForm } from "@/components/place-order-form";
 import { requireCustomer } from "@/lib/session";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export default async function PlaceOrderPage() {
   const customer = await requireCustomer();
-  const { data: products } = await supabase
+  const { data: products } = await supabaseServer
     .from('products')
     .select('product_id, product_name, category, price')
     .eq('is_active', true)

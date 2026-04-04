@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-
-import { getOrder } from "@/lib/mock-data";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 type RouteProps = {
   params: Promise<{ orderId: string }>;
@@ -8,11 +7,21 @@ type RouteProps = {
 
 export async function GET(_: Request, { params }: RouteProps) {
   const { orderId } = await params;
-  const order = getOrder(Number(orderId));
 
-  if (!order) {
+  const { data: order, error: orderError } = await supabaseServer
+    .from("order_summary")
+    .select("*")
+    .eq("order_id", Number(orderId))
+    .single();
+
+  if (orderError || !order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  return NextResponse.json(order);
+  const { data: items } = await supabaseServer
+    .from("order_items")
+    .select("*, products(product_name, category)")
+    .eq("order_id", Number(orderId));
+
+  return NextResponse.json({ ...order, items: items ?? [] });
 }

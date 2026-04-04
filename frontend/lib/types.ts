@@ -15,8 +15,9 @@ export type Customer = {
   state: string;
   customer_segment: string;
   loyalty_tier: string;
-  order_count: number;
-  total_spent: number;
+  is_active: number;
+  total_orders: number;
+  lifetime_value: number;
   average_order: number;
-  last_order_date: string;
+  last_order_date: string | null;
 };

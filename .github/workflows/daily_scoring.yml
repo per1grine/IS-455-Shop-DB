@@ -1,0 +1,29 @@
+name: Daily ML Scoring
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # Every day at 6am UTC
+  workflow_dispatch:       # Also allows manual trigger from GitHub Actions tab
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install joblib scikit-learn numpy pandas
+
+      - name: Run inference pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python jobs/run_inference.py

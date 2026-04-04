@@ -1,0 +1,8 @@
+name,seq
+customers,250
+products,100
+orders,5000
+order_items,15022
+shipments,5000
+product_reviews,3000
+order_predictions,5000

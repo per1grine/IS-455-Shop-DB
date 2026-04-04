@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CUSTOMER_COOKIE } from "@/lib/types";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export async function getActiveCustomer() {
   const cookieStore = await cookies();
@@ -12,7 +12,7 @@ export async function getActiveCustomer() {
     return undefined;
   }
 
-  const { data: customer } = await supabase
+  const { data: customer } = await supabaseServer
     .from('customer_summary')
     .select('*')
     .eq('customer_id', customer_id)

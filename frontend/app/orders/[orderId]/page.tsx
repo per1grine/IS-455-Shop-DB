@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireCustomer } from "@/lib/session";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 type OrderDetailPageProps = {
   params: Promise<{ orderId: string }>;
@@ -10,7 +10,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   const { orderId } = await params;
   const customer = await requireCustomer();
 
-  const { data: order } = await supabase
+  const { data: order } = await supabaseServer
     .from('orders')
     .select(`
       order_id, customer_id, order_datetime, payment_method, device_type,
@@ -26,11 +26,11 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
   }
 
   const [{ data: lines }, { data: predictions }] = await Promise.all([
-    supabase
+    supabaseServer
       .from('order_items')
       .select(`quantity, unit_price, line_total, products (product_name, sku, category)`)
       .eq('order_id', Number(orderId)),
-    supabase
+    supabaseServer
       .from('order_predictions')
       .select('priority_bucket, predicted_priority_score, prediction_reason')
       .eq('order_id', Number(orderId))

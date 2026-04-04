@@ -1,8 +1,8 @@
 import { SelectCustomerForm } from "@/components/select-customer-form";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export default async function SelectCustomerPage() {
-  const { data: customers, error } = await supabase
+  const { data: customers, error } = await supabaseServer
     .from('customer_summary')
     .select('*')
     .order('full_name');
