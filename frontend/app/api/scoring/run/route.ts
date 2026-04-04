@@ -1,62 +1,45 @@
 import { NextResponse } from "next/server";
 
-/**
- * POST /api/scoring/run
- *
- * Triggers the ML inference pipeline. There are two ways this can work
- * depending on your deployment setup — see the comments below.
- *
- * OPTION A (GitHub Actions / local server):
- *   Set SCORING_WEBHOOK_URL in .env.local to a URL that triggers
- *   run_inference.py externally (e.g. a GitHub Actions webhook or a small
- *   FastAPI endpoint running on a server). The route will POST to that URL.
- *
- * OPTION B (no external runner yet):
- *   If SCORING_WEBHOOK_URL is not set, the route returns a clear message
- *   telling the user to run the script manually. This is fine for demos.
- */
 export async function POST() {
-  const webhookUrl = process.env.SCORING_WEBHOOK_URL;
+  const pat = process.env.GITHUB_PAT;
   const start = Date.now();
 
-  if (!webhookUrl) {
+  if (!pat) {
     return NextResponse.json({
       succeeded: false,
-      message:
-        "No SCORING_WEBHOOK_URL configured. Run `python jobs/run_inference.py` manually " +
-        "with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY set, then refresh this page.",
+      message: "No GITHUB_PAT configured.",
       durationMs: 0,
     });
   }
 
   try {
-    const upstream = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // Pass the Supabase creds so the runner can connect
-      body: JSON.stringify({
-        supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        supabase_key: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      }),
-    });
+    const response = await fetch(
+      "https://api.github.com/repos/per1grine/IS-455-Shop-DB/actions/workflows/daily_scoring.yml/dispatches",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${pat}`,
+          "Accept": "application/vnd.github+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      }
+    );
 
-    if (!upstream.ok) {
-      throw new Error(`Upstream responded ${upstream.status}`);
+    if (!response.ok) {
+      throw new Error(`GitHub responded ${response.status}`);
     }
 
     return NextResponse.json({
       succeeded: true,
-      message: "Scoring job triggered successfully. Refresh the priority queue in a few seconds.",
+      message: "Scoring job triggered! Results will appear in 30–60 seconds.",
       durationMs: Date.now() - start,
     });
   } catch (err) {
-    return NextResponse.json(
-      {
-        succeeded: false,
-        message: `Scoring trigger failed: ${err instanceof Error ? err.message : String(err)}`,
-        durationMs: Date.now() - start,
-      },
-      { status: 502 }
-    );
+    return NextResponse.json({
+      succeeded: false,
+      message: `Trigger failed: ${err instanceof Error ? err.message : String(err)}`,
+      durationMs: Date.now() - start,
+    }, { status: 502 });
   }
 }
