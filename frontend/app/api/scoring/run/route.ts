@@ -26,6 +26,13 @@ export async function POST() {
       }
     );
 
+    const responseText = await response.text();
+    console.log("GitHub status:", response.status);
+    console.log("GitHub response:", responseText);
+
+    if (!response.ok) {
+      throw new Error(`GitHub responded ${response.status}: ${responseText}`);
+    }
     if (!response.ok) {
       throw new Error(`GitHub responded ${response.status}`);
     }
