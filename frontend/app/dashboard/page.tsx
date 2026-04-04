@@ -23,7 +23,7 @@ const orders = recentOrders ?? [];
       </section>
 
       <section className="grid grid-4">
-        <div className="metric"><div className="metric-label">Total Orders</div><div className="metric-value">{customer.total_orders}</div></div>
+        <div className="metric"><div className="metric-label">Total Orders</div><div className="metric-value">{customer.order_count}</div></div>
         <div className="metric"><div className="metric-label">Total Spent</div><div className="metric-value">${Number(customer.total_spent).toFixed(0)}</div></div>
         <div className="metric"><div className="metric-label">Average Order</div><div className="metric-value">${Number(customer.average_order).toFixed(0)}</div></div>
         <div className="metric"><div className="metric-label">Last Order</div><div className="metric-value" style={{ fontSize: "1rem" }}>{customer.last_order_date ?? "None"}</div></div>
